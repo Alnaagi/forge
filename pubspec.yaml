@@ -1,0 +1,41 @@
+name: forge
+description: Android-first, offline-first fitness operating system.
+publish_to: none
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.9.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  flutter_riverpod: ^2.6.1
+  go_router: ^17.2.0
+  drift: ^2.20.3
+  freezed_annotation: ^2.4.4
+  json_annotation: ^4.9.0
+  sqlite3_flutter_libs: ^0.5.26
+  path: ^1.9.0
+  path_provider: ^2.1.5
+  dio: ^5.7.0
+  mobile_scanner: ^7.2.0
+  health: ^13.3.1
+  flutter_local_notifications: ^19.5.0
+  permission_handler: ^12.0.1
+  flutter_timezone: ^5.0.2
+  timezone: ^0.10.1
+  supabase_flutter: ^2.12.2
+  collection: ^1.19.1
+  meta: ^1.16.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  drift_dev: ^2.20.3
+  build_runner: ^2.4.13
+  freezed: ^2.5.7
+
+flutter:
+  uses-material-design: true
