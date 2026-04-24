@@ -34,6 +34,32 @@
 </head>
 <body>
   <script src="sql-wasm.js"></script>
+  <script>
+    // Forge uses GitHub Pages for live testing, not as an offline web app.
+    // Clear stale Flutter service workers/caches so old deployments don't
+    // keep serving mismatched assets and leave the page blank.
+    window.addEventListener('load', function () {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function (registrations) {
+          registrations.forEach(function (registration) {
+            registration.unregister();
+          });
+        });
+      }
+
+      if ('caches' in window) {
+        caches.keys().then(function (keys) {
+          keys
+              .filter(function (key) {
+                return key.startsWith('flutter-');
+              })
+              .forEach(function (key) {
+                caches.delete(key);
+              });
+        });
+      }
+    });
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

@@ -44,6 +44,7 @@ jobs:
           flutter build web \
             --release \
             --base-href="${{ env.PAGES_BASE_HREF }}" \
+            --pwa-strategy=none \
             --no-wasm-dry-run \
             --dart-define=FORGE_SUPABASE_URL="${{ secrets.FORGE_SUPABASE_URL }}" \
             --dart-define=FORGE_SUPABASE_PUBLISHABLE_KEY="${{ secrets.FORGE_SUPABASE_PUBLISHABLE_KEY }}"

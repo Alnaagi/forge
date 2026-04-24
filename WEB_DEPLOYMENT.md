@@ -53,6 +53,7 @@ For a GitHub Pages build under a repository named `forge`:
 & 'C:\src\flutter\bin\flutter.bat' build web `
   --release `
   --base-href="/forge/" `
+  --pwa-strategy=none `
   --no-wasm-dry-run
 ```
 
@@ -62,6 +63,7 @@ With optional Supabase config:
 & 'C:\src\flutter\bin\flutter.bat' build web `
   --release `
   --base-href="/forge/" `
+  --pwa-strategy=none `
   --no-wasm-dry-run `
   --dart-define=FORGE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co `
   --dart-define=FORGE_SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_KEY
@@ -90,6 +92,8 @@ It:
 - deploys to GitHub Pages using the official Pages actions flow
 
 The workflow automatically uses the repository name for `--base-href`, so the same workflow can work for `forge` or another repo name without code changes.
+
+GitHub Pages deployment also disables Flutter's PWA service worker with `--pwa-strategy=none` to avoid stale cached assets causing blank-page deploys after updates.
 
 ## GitHub secrets for Supabase
 
