@@ -32,7 +32,9 @@ class AppScaffold extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       floatingActionButton: floatingActionButton,
-      appBar: AppBar(actions: actions),
+      appBar: actions == null || actions!.isEmpty
+          ? null
+          : AppBar(actions: actions),
       body: DecoratedBox(
         decoration: BoxDecoration(
           gradient: AppColors.backgroundGradientFor(brightness),

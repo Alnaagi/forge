@@ -108,7 +108,9 @@ String goalTypeLabel(GoalType goalType) {
     GoalType.cut => 'Cut',
     GoalType.bulk => 'Bulk',
     GoalType.recomp => 'Recomp',
+    GoalType.hypertrophy => 'Hypertrophy',
     GoalType.strength => 'Strength',
+    GoalType.endurance => 'Endurance',
     GoalType.maintain => 'Maintain',
     GoalType.custom => 'Custom',
   };

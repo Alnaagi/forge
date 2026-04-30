@@ -58,6 +58,49 @@ class $UsersTableTable extends UsersTable
       ).withConverter<BodyMetricUnit>(
         $UsersTableTable.$converterpreferredBodyMetricUnit,
       );
+  static const VerificationMeta _originalHeightValueMeta =
+      const VerificationMeta('originalHeightValue');
+  @override
+  late final GeneratedColumn<double> originalHeightValue =
+      GeneratedColumn<double>(
+        'original_height_value',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+      );
+  @override
+  late final GeneratedColumnWithTypeConverter<BodyMetricUnit?, String>
+  originalHeightUnit =
+      GeneratedColumn<String>(
+        'original_height_unit',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      ).withConverter<BodyMetricUnit?>(
+        $UsersTableTable.$converteroriginalHeightUnitn,
+      );
+  static const VerificationMeta _canonicalHeightCentimetersMeta =
+      const VerificationMeta('canonicalHeightCentimeters');
+  @override
+  late final GeneratedColumn<double> canonicalHeightCentimeters =
+      GeneratedColumn<double>(
+        'canonical_height_centimeters',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+      );
+  @override
+  late final GeneratedColumnWithTypeConverter<ActivityLevel?, String>
+  activityLevel = GeneratedColumn<String>(
+    'activity_level',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  ).withConverter<ActivityLevel?>($UsersTableTable.$converteractivityLeveln);
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -86,6 +129,10 @@ class $UsersTableTable extends UsersTable
     displayName,
     preferredWeightUnit,
     preferredBodyMetricUnit,
+    originalHeightValue,
+    originalHeightUnit,
+    canonicalHeightCentimeters,
+    activityLevel,
     createdAt,
     updatedAt,
   ];
@@ -116,6 +163,24 @@ class $UsersTableTable extends UsersTable
       );
     } else if (isInserting) {
       context.missing(_displayNameMeta);
+    }
+    if (data.containsKey('original_height_value')) {
+      context.handle(
+        _originalHeightValueMeta,
+        originalHeightValue.isAcceptableOrUnknown(
+          data['original_height_value']!,
+          _originalHeightValueMeta,
+        ),
+      );
+    }
+    if (data.containsKey('canonical_height_centimeters')) {
+      context.handle(
+        _canonicalHeightCentimetersMeta,
+        canonicalHeightCentimeters.isAcceptableOrUnknown(
+          data['canonical_height_centimeters']!,
+          _canonicalHeightCentimetersMeta,
+        ),
+      );
     }
     if (data.containsKey('created_at')) {
       context.handle(
@@ -165,6 +230,27 @@ class $UsersTableTable extends UsersTable
               data['${effectivePrefix}preferred_body_metric_unit'],
             )!,
           ),
+      originalHeightValue: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}original_height_value'],
+      ),
+      originalHeightUnit: $UsersTableTable.$converteroriginalHeightUnitn
+          .fromSql(
+            attachedDatabase.typeMapping.read(
+              DriftSqlType.string,
+              data['${effectivePrefix}original_height_unit'],
+            ),
+          ),
+      canonicalHeightCentimeters: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}canonical_height_centimeters'],
+      ),
+      activityLevel: $UsersTableTable.$converteractivityLeveln.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}activity_level'],
+        ),
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -189,6 +275,22 @@ class $UsersTableTable extends UsersTable
   $converterpreferredBodyMetricUnit = const EnumNameConverter<BodyMetricUnit>(
     BodyMetricUnit.values,
   );
+  static JsonTypeConverter2<BodyMetricUnit, String, String>
+  $converteroriginalHeightUnit = const EnumNameConverter<BodyMetricUnit>(
+    BodyMetricUnit.values,
+  );
+  static JsonTypeConverter2<BodyMetricUnit?, String?, String?>
+  $converteroriginalHeightUnitn = JsonTypeConverter2.asNullable(
+    $converteroriginalHeightUnit,
+  );
+  static JsonTypeConverter2<ActivityLevel, String, String>
+  $converteractivityLevel = const EnumNameConverter<ActivityLevel>(
+    ActivityLevel.values,
+  );
+  static JsonTypeConverter2<ActivityLevel?, String?, String?>
+  $converteractivityLeveln = JsonTypeConverter2.asNullable(
+    $converteractivityLevel,
+  );
 }
 
 class UsersTableData extends DataClass implements Insertable<UsersTableData> {
@@ -196,6 +298,10 @@ class UsersTableData extends DataClass implements Insertable<UsersTableData> {
   final String displayName;
   final WeightUnit preferredWeightUnit;
   final BodyMetricUnit preferredBodyMetricUnit;
+  final double? originalHeightValue;
+  final BodyMetricUnit? originalHeightUnit;
+  final double? canonicalHeightCentimeters;
+  final ActivityLevel? activityLevel;
   final DateTime createdAt;
   final DateTime updatedAt;
   const UsersTableData({
@@ -203,6 +309,10 @@ class UsersTableData extends DataClass implements Insertable<UsersTableData> {
     required this.displayName,
     required this.preferredWeightUnit,
     required this.preferredBodyMetricUnit,
+    this.originalHeightValue,
+    this.originalHeightUnit,
+    this.canonicalHeightCentimeters,
+    this.activityLevel,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -225,6 +335,26 @@ class UsersTableData extends DataClass implements Insertable<UsersTableData> {
         ),
       );
     }
+    if (!nullToAbsent || originalHeightValue != null) {
+      map['original_height_value'] = Variable<double>(originalHeightValue);
+    }
+    if (!nullToAbsent || originalHeightUnit != null) {
+      map['original_height_unit'] = Variable<String>(
+        $UsersTableTable.$converteroriginalHeightUnitn.toSql(
+          originalHeightUnit,
+        ),
+      );
+    }
+    if (!nullToAbsent || canonicalHeightCentimeters != null) {
+      map['canonical_height_centimeters'] = Variable<double>(
+        canonicalHeightCentimeters,
+      );
+    }
+    if (!nullToAbsent || activityLevel != null) {
+      map['activity_level'] = Variable<String>(
+        $UsersTableTable.$converteractivityLeveln.toSql(activityLevel),
+      );
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -236,6 +366,19 @@ class UsersTableData extends DataClass implements Insertable<UsersTableData> {
       displayName: Value(displayName),
       preferredWeightUnit: Value(preferredWeightUnit),
       preferredBodyMetricUnit: Value(preferredBodyMetricUnit),
+      originalHeightValue: originalHeightValue == null && nullToAbsent
+          ? const Value.absent()
+          : Value(originalHeightValue),
+      originalHeightUnit: originalHeightUnit == null && nullToAbsent
+          ? const Value.absent()
+          : Value(originalHeightUnit),
+      canonicalHeightCentimeters:
+          canonicalHeightCentimeters == null && nullToAbsent
+          ? const Value.absent()
+          : Value(canonicalHeightCentimeters),
+      activityLevel: activityLevel == null && nullToAbsent
+          ? const Value.absent()
+          : Value(activityLevel),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -256,6 +399,17 @@ class UsersTableData extends DataClass implements Insertable<UsersTableData> {
           .fromJson(
             serializer.fromJson<String>(json['preferredBodyMetricUnit']),
           ),
+      originalHeightValue: serializer.fromJson<double?>(
+        json['originalHeightValue'],
+      ),
+      originalHeightUnit: $UsersTableTable.$converteroriginalHeightUnitn
+          .fromJson(serializer.fromJson<String?>(json['originalHeightUnit'])),
+      canonicalHeightCentimeters: serializer.fromJson<double?>(
+        json['canonicalHeightCentimeters'],
+      ),
+      activityLevel: $UsersTableTable.$converteractivityLeveln.fromJson(
+        serializer.fromJson<String?>(json['activityLevel']),
+      ),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -276,6 +430,18 @@ class UsersTableData extends DataClass implements Insertable<UsersTableData> {
           preferredBodyMetricUnit,
         ),
       ),
+      'originalHeightValue': serializer.toJson<double?>(originalHeightValue),
+      'originalHeightUnit': serializer.toJson<String?>(
+        $UsersTableTable.$converteroriginalHeightUnitn.toJson(
+          originalHeightUnit,
+        ),
+      ),
+      'canonicalHeightCentimeters': serializer.toJson<double?>(
+        canonicalHeightCentimeters,
+      ),
+      'activityLevel': serializer.toJson<String?>(
+        $UsersTableTable.$converteractivityLeveln.toJson(activityLevel),
+      ),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -286,6 +452,10 @@ class UsersTableData extends DataClass implements Insertable<UsersTableData> {
     String? displayName,
     WeightUnit? preferredWeightUnit,
     BodyMetricUnit? preferredBodyMetricUnit,
+    Value<double?> originalHeightValue = const Value.absent(),
+    Value<BodyMetricUnit?> originalHeightUnit = const Value.absent(),
+    Value<double?> canonicalHeightCentimeters = const Value.absent(),
+    Value<ActivityLevel?> activityLevel = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => UsersTableData(
@@ -294,6 +464,18 @@ class UsersTableData extends DataClass implements Insertable<UsersTableData> {
     preferredWeightUnit: preferredWeightUnit ?? this.preferredWeightUnit,
     preferredBodyMetricUnit:
         preferredBodyMetricUnit ?? this.preferredBodyMetricUnit,
+    originalHeightValue: originalHeightValue.present
+        ? originalHeightValue.value
+        : this.originalHeightValue,
+    originalHeightUnit: originalHeightUnit.present
+        ? originalHeightUnit.value
+        : this.originalHeightUnit,
+    canonicalHeightCentimeters: canonicalHeightCentimeters.present
+        ? canonicalHeightCentimeters.value
+        : this.canonicalHeightCentimeters,
+    activityLevel: activityLevel.present
+        ? activityLevel.value
+        : this.activityLevel,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -309,6 +491,18 @@ class UsersTableData extends DataClass implements Insertable<UsersTableData> {
       preferredBodyMetricUnit: data.preferredBodyMetricUnit.present
           ? data.preferredBodyMetricUnit.value
           : this.preferredBodyMetricUnit,
+      originalHeightValue: data.originalHeightValue.present
+          ? data.originalHeightValue.value
+          : this.originalHeightValue,
+      originalHeightUnit: data.originalHeightUnit.present
+          ? data.originalHeightUnit.value
+          : this.originalHeightUnit,
+      canonicalHeightCentimeters: data.canonicalHeightCentimeters.present
+          ? data.canonicalHeightCentimeters.value
+          : this.canonicalHeightCentimeters,
+      activityLevel: data.activityLevel.present
+          ? data.activityLevel.value
+          : this.activityLevel,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -321,6 +515,10 @@ class UsersTableData extends DataClass implements Insertable<UsersTableData> {
           ..write('displayName: $displayName, ')
           ..write('preferredWeightUnit: $preferredWeightUnit, ')
           ..write('preferredBodyMetricUnit: $preferredBodyMetricUnit, ')
+          ..write('originalHeightValue: $originalHeightValue, ')
+          ..write('originalHeightUnit: $originalHeightUnit, ')
+          ..write('canonicalHeightCentimeters: $canonicalHeightCentimeters, ')
+          ..write('activityLevel: $activityLevel, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -333,6 +531,10 @@ class UsersTableData extends DataClass implements Insertable<UsersTableData> {
     displayName,
     preferredWeightUnit,
     preferredBodyMetricUnit,
+    originalHeightValue,
+    originalHeightUnit,
+    canonicalHeightCentimeters,
+    activityLevel,
     createdAt,
     updatedAt,
   );
@@ -344,6 +546,10 @@ class UsersTableData extends DataClass implements Insertable<UsersTableData> {
           other.displayName == this.displayName &&
           other.preferredWeightUnit == this.preferredWeightUnit &&
           other.preferredBodyMetricUnit == this.preferredBodyMetricUnit &&
+          other.originalHeightValue == this.originalHeightValue &&
+          other.originalHeightUnit == this.originalHeightUnit &&
+          other.canonicalHeightCentimeters == this.canonicalHeightCentimeters &&
+          other.activityLevel == this.activityLevel &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -353,6 +559,10 @@ class UsersTableCompanion extends UpdateCompanion<UsersTableData> {
   final Value<String> displayName;
   final Value<WeightUnit> preferredWeightUnit;
   final Value<BodyMetricUnit> preferredBodyMetricUnit;
+  final Value<double?> originalHeightValue;
+  final Value<BodyMetricUnit?> originalHeightUnit;
+  final Value<double?> canonicalHeightCentimeters;
+  final Value<ActivityLevel?> activityLevel;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
@@ -361,6 +571,10 @@ class UsersTableCompanion extends UpdateCompanion<UsersTableData> {
     this.displayName = const Value.absent(),
     this.preferredWeightUnit = const Value.absent(),
     this.preferredBodyMetricUnit = const Value.absent(),
+    this.originalHeightValue = const Value.absent(),
+    this.originalHeightUnit = const Value.absent(),
+    this.canonicalHeightCentimeters = const Value.absent(),
+    this.activityLevel = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -370,6 +584,10 @@ class UsersTableCompanion extends UpdateCompanion<UsersTableData> {
     required String displayName,
     required WeightUnit preferredWeightUnit,
     required BodyMetricUnit preferredBodyMetricUnit,
+    this.originalHeightValue = const Value.absent(),
+    this.originalHeightUnit = const Value.absent(),
+    this.canonicalHeightCentimeters = const Value.absent(),
+    this.activityLevel = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.rowid = const Value.absent(),
@@ -384,6 +602,10 @@ class UsersTableCompanion extends UpdateCompanion<UsersTableData> {
     Expression<String>? displayName,
     Expression<String>? preferredWeightUnit,
     Expression<String>? preferredBodyMetricUnit,
+    Expression<double>? originalHeightValue,
+    Expression<String>? originalHeightUnit,
+    Expression<double>? canonicalHeightCentimeters,
+    Expression<String>? activityLevel,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
@@ -395,6 +617,13 @@ class UsersTableCompanion extends UpdateCompanion<UsersTableData> {
         'preferred_weight_unit': preferredWeightUnit,
       if (preferredBodyMetricUnit != null)
         'preferred_body_metric_unit': preferredBodyMetricUnit,
+      if (originalHeightValue != null)
+        'original_height_value': originalHeightValue,
+      if (originalHeightUnit != null)
+        'original_height_unit': originalHeightUnit,
+      if (canonicalHeightCentimeters != null)
+        'canonical_height_centimeters': canonicalHeightCentimeters,
+      if (activityLevel != null) 'activity_level': activityLevel,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -406,6 +635,10 @@ class UsersTableCompanion extends UpdateCompanion<UsersTableData> {
     Value<String>? displayName,
     Value<WeightUnit>? preferredWeightUnit,
     Value<BodyMetricUnit>? preferredBodyMetricUnit,
+    Value<double?>? originalHeightValue,
+    Value<BodyMetricUnit?>? originalHeightUnit,
+    Value<double?>? canonicalHeightCentimeters,
+    Value<ActivityLevel?>? activityLevel,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
@@ -416,6 +649,11 @@ class UsersTableCompanion extends UpdateCompanion<UsersTableData> {
       preferredWeightUnit: preferredWeightUnit ?? this.preferredWeightUnit,
       preferredBodyMetricUnit:
           preferredBodyMetricUnit ?? this.preferredBodyMetricUnit,
+      originalHeightValue: originalHeightValue ?? this.originalHeightValue,
+      originalHeightUnit: originalHeightUnit ?? this.originalHeightUnit,
+      canonicalHeightCentimeters:
+          canonicalHeightCentimeters ?? this.canonicalHeightCentimeters,
+      activityLevel: activityLevel ?? this.activityLevel,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -445,6 +683,28 @@ class UsersTableCompanion extends UpdateCompanion<UsersTableData> {
         ),
       );
     }
+    if (originalHeightValue.present) {
+      map['original_height_value'] = Variable<double>(
+        originalHeightValue.value,
+      );
+    }
+    if (originalHeightUnit.present) {
+      map['original_height_unit'] = Variable<String>(
+        $UsersTableTable.$converteroriginalHeightUnitn.toSql(
+          originalHeightUnit.value,
+        ),
+      );
+    }
+    if (canonicalHeightCentimeters.present) {
+      map['canonical_height_centimeters'] = Variable<double>(
+        canonicalHeightCentimeters.value,
+      );
+    }
+    if (activityLevel.present) {
+      map['activity_level'] = Variable<String>(
+        $UsersTableTable.$converteractivityLeveln.toSql(activityLevel.value),
+      );
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -464,6 +724,10 @@ class UsersTableCompanion extends UpdateCompanion<UsersTableData> {
           ..write('displayName: $displayName, ')
           ..write('preferredWeightUnit: $preferredWeightUnit, ')
           ..write('preferredBodyMetricUnit: $preferredBodyMetricUnit, ')
+          ..write('originalHeightValue: $originalHeightValue, ')
+          ..write('originalHeightUnit: $originalHeightUnit, ')
+          ..write('canonicalHeightCentimeters: $canonicalHeightCentimeters, ')
+          ..write('activityLevel: $activityLevel, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -13584,6 +13848,10 @@ typedef $$UsersTableTableCreateCompanionBuilder =
       required String displayName,
       required WeightUnit preferredWeightUnit,
       required BodyMetricUnit preferredBodyMetricUnit,
+      Value<double?> originalHeightValue,
+      Value<BodyMetricUnit?> originalHeightUnit,
+      Value<double?> canonicalHeightCentimeters,
+      Value<ActivityLevel?> activityLevel,
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<int> rowid,
@@ -13594,6 +13862,10 @@ typedef $$UsersTableTableUpdateCompanionBuilder =
       Value<String> displayName,
       Value<WeightUnit> preferredWeightUnit,
       Value<BodyMetricUnit> preferredBodyMetricUnit,
+      Value<double?> originalHeightValue,
+      Value<BodyMetricUnit?> originalHeightUnit,
+      Value<double?> canonicalHeightCentimeters,
+      Value<ActivityLevel?> activityLevel,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> rowid,
@@ -13627,6 +13899,28 @@ class $$UsersTableTableFilterComposer
   ColumnWithTypeConverterFilters<BodyMetricUnit, BodyMetricUnit, String>
   get preferredBodyMetricUnit => $composableBuilder(
     column: $table.preferredBodyMetricUnit,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<double> get originalHeightValue => $composableBuilder(
+    column: $table.originalHeightValue,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<BodyMetricUnit?, BodyMetricUnit, String>
+  get originalHeightUnit => $composableBuilder(
+    column: $table.originalHeightUnit,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<double> get canonicalHeightCentimeters => $composableBuilder(
+    column: $table.canonicalHeightCentimeters,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<ActivityLevel?, ActivityLevel, String>
+  get activityLevel => $composableBuilder(
+    column: $table.activityLevel,
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
@@ -13670,6 +13964,26 @@ class $$UsersTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<double> get originalHeightValue => $composableBuilder(
+    column: $table.originalHeightValue,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get originalHeightUnit => $composableBuilder(
+    column: $table.originalHeightUnit,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get canonicalHeightCentimeters => $composableBuilder(
+    column: $table.canonicalHeightCentimeters,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get activityLevel => $composableBuilder(
+    column: $table.activityLevel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -13709,6 +14023,28 @@ class $$UsersTableTableAnnotationComposer
     column: $table.preferredBodyMetricUnit,
     builder: (column) => column,
   );
+
+  GeneratedColumn<double> get originalHeightValue => $composableBuilder(
+    column: $table.originalHeightValue,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<BodyMetricUnit?, String>
+  get originalHeightUnit => $composableBuilder(
+    column: $table.originalHeightUnit,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get canonicalHeightCentimeters => $composableBuilder(
+    column: $table.canonicalHeightCentimeters,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<ActivityLevel?, String> get activityLevel =>
+      $composableBuilder(
+        column: $table.activityLevel,
+        builder: (column) => column,
+      );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -13753,6 +14089,12 @@ class $$UsersTableTableTableManager
                 Value<WeightUnit> preferredWeightUnit = const Value.absent(),
                 Value<BodyMetricUnit> preferredBodyMetricUnit =
                     const Value.absent(),
+                Value<double?> originalHeightValue = const Value.absent(),
+                Value<BodyMetricUnit?> originalHeightUnit =
+                    const Value.absent(),
+                Value<double?> canonicalHeightCentimeters =
+                    const Value.absent(),
+                Value<ActivityLevel?> activityLevel = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -13761,6 +14103,10 @@ class $$UsersTableTableTableManager
                 displayName: displayName,
                 preferredWeightUnit: preferredWeightUnit,
                 preferredBodyMetricUnit: preferredBodyMetricUnit,
+                originalHeightValue: originalHeightValue,
+                originalHeightUnit: originalHeightUnit,
+                canonicalHeightCentimeters: canonicalHeightCentimeters,
+                activityLevel: activityLevel,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -13771,6 +14117,12 @@ class $$UsersTableTableTableManager
                 required String displayName,
                 required WeightUnit preferredWeightUnit,
                 required BodyMetricUnit preferredBodyMetricUnit,
+                Value<double?> originalHeightValue = const Value.absent(),
+                Value<BodyMetricUnit?> originalHeightUnit =
+                    const Value.absent(),
+                Value<double?> canonicalHeightCentimeters =
+                    const Value.absent(),
+                Value<ActivityLevel?> activityLevel = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
@@ -13779,6 +14131,10 @@ class $$UsersTableTableTableManager
                 displayName: displayName,
                 preferredWeightUnit: preferredWeightUnit,
                 preferredBodyMetricUnit: preferredBodyMetricUnit,
+                originalHeightValue: originalHeightValue,
+                originalHeightUnit: originalHeightUnit,
+                canonicalHeightCentimeters: canonicalHeightCentimeters,
+                activityLevel: activityLevel,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,

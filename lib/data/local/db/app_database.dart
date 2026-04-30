@@ -22,8 +22,10 @@ import 'package:forge/data/local/db/tables/workout_sessions_table.dart';
 import 'package:forge/data/local/db/tables/workout_template_items_table.dart';
 import 'package:forge/data/local/db/tables/workout_templates_table.dart';
 import 'package:forge/data/local/db/db_connection.dart';
-import 'package:forge/data/local/db/migrations/migration_v5.dart';
+import 'package:forge/data/local/db/migrations/migration_v6.dart';
 import 'package:forge/data/local/db/seeds/built_in_exercises_seed.dart';
+import 'package:forge/data/local/db/seeds/common_foods_seed.dart';
+import 'package:forge/shared/enums/activity_level.dart';
 import 'package:forge/shared/enums/body_metric_unit.dart';
 import 'package:forge/shared/enums/food_quantity_unit.dart';
 import 'package:forge/shared/enums/goal_type.dart';
@@ -74,20 +76,21 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.test(super.executor);
 
   @override
-  int get schemaVersion => MigrationV5.version;
+  int get schemaVersion => MigrationV6.version;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) async {
       await m.createAll();
-      await MigrationV5.createIndexes(this);
+      await MigrationV6.createIndexes(this);
     },
     onUpgrade: (m, from, to) async {
-      await MigrationV5.onUpgrade(this, m, from, to);
+      await MigrationV6.onUpgrade(this, m, from, to);
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
       await _seedBuiltInExercises();
+      await _seedCommonFoods();
     },
   );
 
@@ -111,5 +114,60 @@ class AppDatabase extends _$AppDatabase {
             .toList(),
       );
     });
+  }
+
+  Future<void> _seedCommonFoods() async {
+    final seed = const CommonFoodsSeed().all();
+    await batch((batch) {
+      batch.insertAllOnConflictUpdate(
+        foodsTable,
+        seed
+            .map(
+              (food) => FoodsTableCompanion.insert(
+                id: food.id,
+                name: food.name,
+                caloriesPer100g: food.caloriesPer100g,
+                proteinPer100g: food.proteinPer100g,
+                carbsPer100g: food.carbsPer100g,
+                fatPer100g: food.fatPer100g,
+                source: food.source,
+                isUserEdited: Value(food.isUserEdited),
+                createdAt: food.createdAt,
+                updatedAt: food.updatedAt,
+              ),
+            )
+            .toList(),
+      );
+    });
+  }
+
+  Future<void> resetLocalData() async {
+    await transaction(() async {
+      await delete(setEntriesTable).go();
+      await delete(workoutExerciseEntriesTable).go();
+      await delete(workoutSessionsTable).go();
+      await delete(workoutTemplateItemsTable).go();
+      await delete(workoutTemplatesTable).go();
+      await delete(mealEntriesTable).go();
+      await delete(savedMealItemsTable).go();
+      await delete(savedMealsTable).go();
+      await delete(foodPortionsTable).go();
+      await delete(foodsTable).go();
+      await delete(hydrationLogsTable).go();
+      await delete(bodyLogsTable).go();
+      await delete(remindersTable).go();
+      await delete(healthSyncRecordsTable).go();
+      await delete(healthStatusLogsTable).go();
+      await delete(healthProfilesTable).go();
+      await delete(insightsTable).go();
+      await delete(syncQueueTable).go();
+      await delete(goalsTable).go();
+      await delete(appSettingsTable).go();
+      await delete(usersTable).go();
+      await delete(exercisesTable).go();
+    });
+
+    await _seedBuiltInExercises();
+    await _seedCommonFoods();
   }
 }

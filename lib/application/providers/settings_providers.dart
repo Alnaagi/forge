@@ -7,6 +7,9 @@ import 'package:forge/domain/entities/app_setting.dart';
 import 'package:forge/domain/repositories/settings_repository.dart';
 
 const _themeModeSettingKey = 'theme_mode';
+const _languageSettingKey = 'language';
+const _hydrationGoalMillilitersKey = 'hydration_goal_milliliters';
+const _foodPreferencesKey = 'food_preferences';
 const _gymMembershipStartDateKey = 'gym_membership_start_date';
 const _gymMembershipCycleDaysKey = 'gym_membership_cycle_days';
 const _dashboardSectionOrderKey = 'dashboard_section_order';
@@ -31,6 +34,63 @@ final themeModeControllerProvider = Provider<ThemeModeController>((ref) {
     repository: ref.watch(settingsRepositoryProvider),
     ref: ref,
   );
+});
+
+final languagePreferenceProvider = FutureProvider<AppLanguage>((ref) async {
+  final setting = await ref
+      .watch(settingsRepositoryProvider)
+      .getByKey(_languageSettingKey);
+  return AppLanguage.fromSettingValue(setting?.value);
+});
+
+final languagePreferenceControllerProvider =
+    Provider<LanguagePreferenceController>((ref) {
+      return LanguagePreferenceController(
+        repository: ref.watch(settingsRepositoryProvider),
+        ref: ref,
+      );
+    });
+
+final hydrationGoalProvider = FutureProvider<double>((ref) async {
+  final setting = await ref
+      .watch(settingsRepositoryProvider)
+      .getByKey(_hydrationGoalMillilitersKey);
+  final value = double.tryParse(setting?.value ?? '');
+  if (value == null || value <= 0) {
+    return 2500;
+  }
+  return value;
+});
+
+final hydrationGoalControllerProvider = Provider<HydrationGoalController>((
+  ref,
+) {
+  return HydrationGoalController(
+    repository: ref.watch(settingsRepositoryProvider),
+    ref: ref,
+  );
+});
+
+final foodPreferencesProvider = FutureProvider<FoodPreferences>((ref) async {
+  final setting = await ref
+      .watch(settingsRepositoryProvider)
+      .getByKey(_foodPreferencesKey);
+  return FoodPreferences.fromSettingValue(setting?.value);
+});
+
+final foodPreferencesControllerProvider = Provider<FoodPreferencesController>((
+  ref,
+) {
+  return FoodPreferencesController(
+    repository: ref.watch(settingsRepositoryProvider),
+    ref: ref,
+  );
+});
+
+final localDataResetControllerProvider = Provider<LocalDataResetController>((
+  ref,
+) {
+  return LocalDataResetController(ref: ref);
 });
 
 final gymMembershipSettingsProvider = FutureProvider<GymMembershipSettings?>((
@@ -117,6 +177,108 @@ class ThemeModeController {
     );
     ref.invalidate(themeModePreferenceProvider);
   }
+}
+
+class LanguagePreferenceController {
+  const LanguagePreferenceController({
+    required this.repository,
+    required this.ref,
+  });
+
+  final SettingsRepository repository;
+  final Ref ref;
+
+  Future<void> setLanguage(AppLanguage language) async {
+    await repository.save(
+      AppSetting(
+        key: _languageSettingKey,
+        value: language.settingValue,
+        updatedAt: DateTime.now(),
+      ),
+    );
+    ref.invalidate(languagePreferenceProvider);
+  }
+}
+
+class HydrationGoalController {
+  const HydrationGoalController({required this.repository, required this.ref});
+
+  final SettingsRepository repository;
+  final Ref ref;
+
+  Future<void> setGoalMilliliters(double milliliters) async {
+    await repository.save(
+      AppSetting(
+        key: _hydrationGoalMillilitersKey,
+        value: milliliters.round().toString(),
+        updatedAt: DateTime.now(),
+      ),
+    );
+    ref.invalidate(hydrationGoalProvider);
+  }
+}
+
+class FoodPreferencesController {
+  const FoodPreferencesController({
+    required this.repository,
+    required this.ref,
+  });
+
+  final SettingsRepository repository;
+  final Ref ref;
+
+  Future<void> save(FoodPreferences preferences) async {
+    await repository.save(
+      AppSetting(
+        key: _foodPreferencesKey,
+        value: preferences.toSettingValue(),
+        updatedAt: DateTime.now(),
+      ),
+    );
+    ref.invalidate(foodPreferencesProvider);
+  }
+}
+
+class LocalDataResetController {
+  const LocalDataResetController({required this.ref});
+
+  final Ref ref;
+
+  Future<void> resetLocalDatabase() async {
+    await ref.read(appDatabaseProvider).resetLocalData();
+    ref.invalidate(appDatabaseProvider);
+  }
+}
+
+class FoodPreferences {
+  const FoodPreferences({
+    required this.proteinStyle,
+    required this.carbStyle,
+    required this.dietStyle,
+  });
+
+  const FoodPreferences.defaults()
+    : proteinStyle = 'mixed',
+      carbStyle = 'rice_potato_oats',
+      dietStyle = 'balanced';
+
+  final String proteinStyle;
+  final String carbStyle;
+  final String dietStyle;
+
+  static FoodPreferences fromSettingValue(String? value) {
+    final parts = (value ?? '').split('|');
+    if (parts.length != 3) {
+      return const FoodPreferences.defaults();
+    }
+    return FoodPreferences(
+      proteinStyle: parts[0],
+      carbStyle: parts[1],
+      dietStyle: parts[2],
+    );
+  }
+
+  String toSettingValue() => '$proteinStyle|$carbStyle|$dietStyle';
 }
 
 class GymMembershipController {
@@ -336,4 +498,22 @@ String _themeModeToValue(ThemeMode themeMode) {
     ThemeMode.dark => 'dark',
     ThemeMode.system => 'system',
   };
+}
+
+enum AppLanguage {
+  english('English', 'English UI', 'en'),
+  arabic('Arabic', 'Arabic UI later', 'ar');
+
+  const AppLanguage(this.label, this.description, this.settingValue);
+
+  final String label;
+  final String description;
+  final String settingValue;
+
+  static AppLanguage fromSettingValue(String? value) {
+    return switch (value) {
+      'ar' => AppLanguage.arabic,
+      _ => AppLanguage.english,
+    };
+  }
 }

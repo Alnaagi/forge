@@ -8,7 +8,9 @@ import 'package:forge/app/router/route_names.dart';
 import 'package:forge/app/theme/app_colors.dart';
 import 'package:forge/app/theme/app_spacing.dart';
 import 'package:forge/application/providers/health_sync_providers.dart';
+import 'package:forge/application/providers/profile_providers.dart';
 import 'package:forge/domain/entities/body_log.dart';
+import 'package:forge/domain/services/body_baseline_service.dart';
 import 'package:forge/features/body_metrics/presentation/controllers/body_progress_controller.dart';
 import 'package:forge/shared/enums/body_metric_unit.dart';
 import 'package:forge/shared/enums/weight_unit.dart';
@@ -25,6 +27,12 @@ class BodyProgressScreen extends ConsumerWidget {
     final healthSyncOverview = ref
         .watch(healthSyncOverviewProvider)
         .valueOrNull;
+    final profile = ref.watch(currentUserProfileProvider).valueOrNull;
+    final baselineMetrics = const BodyBaselineService().calculate(
+      weightKilograms: summary.latestWeight,
+      heightCentimeters: profile?.height?.canonicalCentimeters,
+      waistCentimeters: summary.latestWaist,
+    );
 
     return AppScaffold(
       title: 'Progress',
@@ -143,6 +151,50 @@ class BodyProgressScreen extends ConsumerWidget {
                   ),
                 ],
               ),
+              if (baselineMetrics.bmi != null ||
+                  baselineMetrics.waistToHeightRatio != null ||
+                  profile?.activityLevel != null) ...[
+                const SizedBox(height: AppSpacing.md),
+                AppPanel(
+                  gradient: AppColors.orangePanelGradient,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Baseline Signals',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        'Calculated from your saved height, latest weight, latest waist, and activity level. Body fat is only shown when you log it directly.',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      Wrap(
+                        spacing: AppSpacing.sm,
+                        runSpacing: AppSpacing.sm,
+                        children: [
+                          if (baselineMetrics.bmi != null)
+                            _MetricBadge(
+                              label:
+                                  'BMI ${baselineMetrics.bmi!.toStringAsFixed(1)} | ${baselineMetrics.bmiLabel}',
+                            ),
+                          if (baselineMetrics.waistToHeightRatio != null)
+                            _MetricBadge(
+                              label:
+                                  'Waist/height ${baselineMetrics.waistToHeightRatio!.toStringAsFixed(2)} | ${baselineMetrics.waistToHeightLabel}',
+                            ),
+                          if (profile?.activityLevel != null)
+                            _MetricBadge(
+                              label:
+                                  'Activity ${profile!.activityLevel!.label}',
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               if (healthSyncOverview?.latestBodyWeight != null) ...[
                 const SizedBox(height: AppSpacing.md),
                 AppPanel(

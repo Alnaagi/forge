@@ -20,6 +20,9 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeModeAsync = ref.watch(themeModePreferenceProvider);
     final selectedThemeMode = themeModeAsync.valueOrNull ?? ThemeMode.system;
+    final selectedLanguage =
+        ref.watch(languagePreferenceProvider).valueOrNull ??
+        AppLanguage.english;
     final gymMembershipAsync = ref.watch(gymMembershipStatusProvider);
     final smartRemindersAsync = ref.watch(smartRemindersProvider);
     final reminderDeliveryStatusAsync = ref.watch(
@@ -73,6 +76,36 @@ class SettingsScreen extends ConsumerWidget {
                     ref
                         .read(themeModeControllerProvider)
                         .setThemeMode(selection.first);
+                  },
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Text('Language', style: Theme.of(context).textTheme.titleLarge),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  'English is active today. Arabic can be selected and saved now while full translated copy is prepared.',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                SegmentedButton<AppLanguage>(
+                  showSelectedIcon: false,
+                  segments: AppLanguage.values
+                      .map(
+                        (language) => ButtonSegment<AppLanguage>(
+                          value: language,
+                          icon: Icon(
+                            language == AppLanguage.arabic
+                                ? Icons.translate_outlined
+                                : Icons.language_outlined,
+                          ),
+                          label: Text(language.label),
+                        ),
+                      )
+                      .toList(growable: false),
+                  selected: {selectedLanguage},
+                  onSelectionChanged: (selection) {
+                    ref
+                        .read(languagePreferenceControllerProvider)
+                        .setLanguage(selection.first);
                   },
                 ),
               ],
@@ -270,6 +303,31 @@ class SettingsScreen extends ConsumerWidget {
                   'Exports are intentionally deferred until reporting rules are finalized.',
             ),
           ),
+          const SizedBox(height: AppSpacing.md),
+          AppPanel(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Local Data Reset',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.headlineLarge?.copyWith(color: AppColors.crimson),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  'Clear this device database and return Forge to first-run onboarding. Built-in starter exercises and common foods will be re-seeded.',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                OutlinedButton.icon(
+                  onPressed: () => _confirmDatabaseReset(context, ref),
+                  icon: const Icon(Icons.warning_amber_outlined),
+                  label: const Text('Reset Local Database'),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -306,6 +364,81 @@ class SettingsScreen extends ConsumerWidget {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Gym membership updated.')));
+  }
+
+  Future<void> _confirmDatabaseReset(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    const confirmationWord = 'RESET';
+    final controller = TextEditingController();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            final canReset =
+                controller.text.trim().toUpperCase() == confirmationWord;
+            return AlertDialog(
+              title: const Text('Reset Local Database?'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'This deletes local profile, workouts, nutrition logs, body progress, reminders, insights, health logs, and backup queue state from this device.',
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  const Text(
+                    'Type RESET to confirm. This does not delete remote backup rows that were already uploaded.',
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  TextField(
+                    controller: controller,
+                    autofocus: true,
+                    textCapitalization: TextCapitalization.characters,
+                    decoration: const InputDecoration(
+                      labelText: 'Confirmation word',
+                      hintText: 'RESET',
+                    ),
+                    onChanged: (_) => setState(() {}),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: canReset
+                      ? () => Navigator.of(dialogContext).pop(true)
+                      : null,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.crimson,
+                  ),
+                  child: const Text('Reset Database'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+    controller.dispose();
+
+    if (confirmed != true || !context.mounted) {
+      return;
+    }
+
+    await ref.read(localDataResetControllerProvider).resetLocalDatabase();
+    if (!context.mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Local database reset. Starting fresh.')),
+    );
+    context.goNamed(RouteNames.onboarding);
   }
 }
 

@@ -100,7 +100,9 @@ class NutritionInsightRuleService {
     final threshold = switch (activeGoal.type) {
       GoalType.cut => 0.45,
       GoalType.bulk => 0.65,
+      GoalType.hypertrophy => 0.65,
       GoalType.strength => 0.65,
+      GoalType.endurance => 0.62,
       GoalType.maintain => 0.6,
       GoalType.recomp => 0.55,
       GoalType.custom => 0.6,
@@ -110,7 +112,9 @@ class NutritionInsightRuleService {
     }
 
     final severity =
-        activeGoal.type == GoalType.bulk || activeGoal.type == GoalType.strength
+        activeGoal.type == GoalType.bulk ||
+            activeGoal.type == GoalType.hypertrophy ||
+            activeGoal.type == GoalType.strength
         ? InsightSeverity.medium
         : InsightSeverity.low;
 

@@ -22,6 +22,8 @@ mixin _$UserProfile {
   WeightUnit get preferredWeightUnit => throw _privateConstructorUsedError;
   BodyMetricUnit get preferredBodyMetricUnit =>
       throw _privateConstructorUsedError;
+  MeasurementValue? get height => throw _privateConstructorUsedError;
+  ActivityLevel? get activityLevel => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime get updatedAt => throw _privateConstructorUsedError;
 
@@ -44,9 +46,13 @@ abstract class $UserProfileCopyWith<$Res> {
     String displayName,
     WeightUnit preferredWeightUnit,
     BodyMetricUnit preferredBodyMetricUnit,
+    MeasurementValue? height,
+    ActivityLevel? activityLevel,
     DateTime createdAt,
     DateTime updatedAt,
   });
+
+  $MeasurementValueCopyWith<$Res>? get height;
 }
 
 /// @nodoc
@@ -68,6 +74,8 @@ class _$UserProfileCopyWithImpl<$Res, $Val extends UserProfile>
     Object? displayName = null,
     Object? preferredWeightUnit = null,
     Object? preferredBodyMetricUnit = null,
+    Object? height = freezed,
+    Object? activityLevel = freezed,
     Object? createdAt = null,
     Object? updatedAt = null,
   }) {
@@ -89,6 +97,14 @@ class _$UserProfileCopyWithImpl<$Res, $Val extends UserProfile>
                 ? _value.preferredBodyMetricUnit
                 : preferredBodyMetricUnit // ignore: cast_nullable_to_non_nullable
                       as BodyMetricUnit,
+            height: freezed == height
+                ? _value.height
+                : height // ignore: cast_nullable_to_non_nullable
+                      as MeasurementValue?,
+            activityLevel: freezed == activityLevel
+                ? _value.activityLevel
+                : activityLevel // ignore: cast_nullable_to_non_nullable
+                      as ActivityLevel?,
             createdAt: null == createdAt
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
@@ -100,6 +116,20 @@ class _$UserProfileCopyWithImpl<$Res, $Val extends UserProfile>
           )
           as $Val,
     );
+  }
+
+  /// Create a copy of UserProfile
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $MeasurementValueCopyWith<$Res>? get height {
+    if (_value.height == null) {
+      return null;
+    }
+
+    return $MeasurementValueCopyWith<$Res>(_value.height!, (value) {
+      return _then(_value.copyWith(height: value) as $Val);
+    });
   }
 }
 
@@ -117,9 +147,14 @@ abstract class _$$UserProfileImplCopyWith<$Res>
     String displayName,
     WeightUnit preferredWeightUnit,
     BodyMetricUnit preferredBodyMetricUnit,
+    MeasurementValue? height,
+    ActivityLevel? activityLevel,
     DateTime createdAt,
     DateTime updatedAt,
   });
+
+  @override
+  $MeasurementValueCopyWith<$Res>? get height;
 }
 
 /// @nodoc
@@ -140,6 +175,8 @@ class __$$UserProfileImplCopyWithImpl<$Res>
     Object? displayName = null,
     Object? preferredWeightUnit = null,
     Object? preferredBodyMetricUnit = null,
+    Object? height = freezed,
+    Object? activityLevel = freezed,
     Object? createdAt = null,
     Object? updatedAt = null,
   }) {
@@ -161,6 +198,14 @@ class __$$UserProfileImplCopyWithImpl<$Res>
             ? _value.preferredBodyMetricUnit
             : preferredBodyMetricUnit // ignore: cast_nullable_to_non_nullable
                   as BodyMetricUnit,
+        height: freezed == height
+            ? _value.height
+            : height // ignore: cast_nullable_to_non_nullable
+                  as MeasurementValue?,
+        activityLevel: freezed == activityLevel
+            ? _value.activityLevel
+            : activityLevel // ignore: cast_nullable_to_non_nullable
+                  as ActivityLevel?,
         createdAt: null == createdAt
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
@@ -182,6 +227,8 @@ class _$UserProfileImpl implements _UserProfile {
     required this.displayName,
     required this.preferredWeightUnit,
     required this.preferredBodyMetricUnit,
+    this.height,
+    this.activityLevel,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -195,13 +242,17 @@ class _$UserProfileImpl implements _UserProfile {
   @override
   final BodyMetricUnit preferredBodyMetricUnit;
   @override
+  final MeasurementValue? height;
+  @override
+  final ActivityLevel? activityLevel;
+  @override
   final DateTime createdAt;
   @override
   final DateTime updatedAt;
 
   @override
   String toString() {
-    return 'UserProfile(id: $id, displayName: $displayName, preferredWeightUnit: $preferredWeightUnit, preferredBodyMetricUnit: $preferredBodyMetricUnit, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'UserProfile(id: $id, displayName: $displayName, preferredWeightUnit: $preferredWeightUnit, preferredBodyMetricUnit: $preferredBodyMetricUnit, height: $height, activityLevel: $activityLevel, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -219,6 +270,9 @@ class _$UserProfileImpl implements _UserProfile {
                   preferredBodyMetricUnit,
                 ) ||
                 other.preferredBodyMetricUnit == preferredBodyMetricUnit) &&
+            (identical(other.height, height) || other.height == height) &&
+            (identical(other.activityLevel, activityLevel) ||
+                other.activityLevel == activityLevel) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -232,6 +286,8 @@ class _$UserProfileImpl implements _UserProfile {
     displayName,
     preferredWeightUnit,
     preferredBodyMetricUnit,
+    height,
+    activityLevel,
     createdAt,
     updatedAt,
   );
@@ -251,6 +307,8 @@ abstract class _UserProfile implements UserProfile {
     required final String displayName,
     required final WeightUnit preferredWeightUnit,
     required final BodyMetricUnit preferredBodyMetricUnit,
+    final MeasurementValue? height,
+    final ActivityLevel? activityLevel,
     required final DateTime createdAt,
     required final DateTime updatedAt,
   }) = _$UserProfileImpl;
@@ -263,6 +321,10 @@ abstract class _UserProfile implements UserProfile {
   WeightUnit get preferredWeightUnit;
   @override
   BodyMetricUnit get preferredBodyMetricUnit;
+  @override
+  MeasurementValue? get height;
+  @override
+  ActivityLevel? get activityLevel;
   @override
   DateTime get createdAt;
   @override

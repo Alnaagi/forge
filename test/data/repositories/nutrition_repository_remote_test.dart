@@ -78,8 +78,10 @@ void main() {
       ];
 
       final firstSearch = await repository.searchFoods('oats');
-      expect(firstSearch, hasLength(1));
-      expect(firstSearch.single.food.name, 'Instant Oats');
+      expect(
+        firstSearch.map((detail) => detail.food.name),
+        contains('Instant Oats'),
+      );
 
       nutritionApiClient.results = const [];
 

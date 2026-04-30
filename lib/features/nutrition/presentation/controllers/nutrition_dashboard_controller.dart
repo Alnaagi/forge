@@ -1,7 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forge/application/providers/nutrition_providers.dart';
+import 'package:forge/application/providers/goal_providers.dart';
+import 'package:forge/application/providers/profile_providers.dart';
+import 'package:forge/domain/entities/food_detail.dart';
 import 'package:forge/domain/entities/hydration_log.dart';
 import 'package:forge/domain/entities/meal_entry_detail.dart';
+import 'package:forge/domain/services/nutrition_target_service.dart';
+import 'package:forge/features/body_metrics/presentation/controllers/body_progress_controller.dart';
+import 'package:forge/features/workouts/presentation/controllers/workout_history_controller.dart';
 import 'package:forge/shared/enums/meal_type.dart';
 import 'package:forge/shared/enums/volume_unit.dart';
 import 'package:forge/shared/value_objects/nutrition_macros.dart';
@@ -43,6 +49,35 @@ final nutritionDayOverviewProvider =
 
 final nutritionActionsProvider = Provider<NutritionActions>((ref) {
   return NutritionActions(ref);
+});
+
+final nutritionTargetPlanProvider = Provider.autoDispose<NutritionTargetPlan>((
+  ref,
+) {
+  final profile = ref.watch(currentUserProfileProvider).valueOrNull;
+  final activeGoal = ref.watch(activeGoalProvider).valueOrNull;
+  final bodySummary = ref.watch(bodyProgressSummaryProvider);
+  final history = ref.watch(workoutHistoryProvider).valueOrNull ?? const [];
+
+  return const NutritionTargetService().calculate(
+    profile: profile,
+    activeGoal: activeGoal,
+    latestWeightKilograms: bodySummary.latestWeight,
+    workoutHistory: history,
+  );
+});
+
+final recentMealEntriesProvider =
+    FutureProvider.autoDispose<List<MealEntryDetail>>((ref) {
+      return ref
+          .watch(nutritionRepositoryProvider)
+          .getRecentMealEntryDetails(limit: 6);
+    });
+
+final commonFoodDetailsProvider = FutureProvider.autoDispose<List<FoodDetail>>((
+  ref,
+) {
+  return ref.watch(nutritionRepositoryProvider).searchFoods('');
 });
 
 class NutritionDayOverview {

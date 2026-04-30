@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forge/app/core/widgets/app_panel.dart';
@@ -10,6 +12,7 @@ import 'package:forge/application/providers/insight_providers.dart';
 import 'package:forge/application/providers/health_sync_providers.dart';
 import 'package:forge/application/providers/settings_providers.dart';
 import 'package:forge/domain/entities/insight.dart';
+import 'package:forge/domain/entities/workout_history_item.dart';
 import 'package:forge/features/insights/presentation/controllers/insight_action_resolver.dart';
 import 'package:forge/features/health/presentation/controllers/health_overview_controller.dart';
 import 'package:forge/features/nutrition/presentation/controllers/nutrition_dashboard_controller.dart';
@@ -33,6 +36,7 @@ class HomeDashboardScreen extends ConsumerWidget {
         .watch(healthSyncOverviewProvider)
         .valueOrNull;
     final gymMembershipAsync = ref.watch(gymMembershipStatusProvider);
+    final hydrationGoalAsync = ref.watch(hydrationGoalProvider);
     final dashboardOrder =
         ref.watch(dashboardSectionOrderProvider).valueOrNull ??
         defaultDashboardSectionOrder;
@@ -42,31 +46,9 @@ class HomeDashboardScreen extends ConsumerWidget {
 
     final sectionWidgets = <DashboardSection, Widget>{
       DashboardSection.systemStatus: nutritionAsync.when(
-        data: (overview) => AppPanel(
-          gradient: AppColors.greenPanelGradient,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'System Status',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Text(
-                overview.totalHydrationMilliliters < 1500
-                    ? 'Push hydration before the next hard block.'
-                    : 'Recovery inputs are moving in the right direction.',
-                style: Theme.of(context).textTheme.headlineLarge,
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                '${NutritionFormatters.hydrationMilliliters(overview.totalHydrationMilliliters)} logged today across ${overview.hydrationLogs.length} entries. Deterministic insights and reminder planning are already live, so this panel is your quick read on whether recovery inputs look steady.',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            ],
-          ),
+        data: (overview) => _HydrationStatusPanel(
+          overview: overview,
+          goalMilliliters: hydrationGoalAsync.valueOrNull ?? 2500,
         ),
         error: (error, stackTrace) =>
             AppPanel(child: AppErrorState(message: error.toString())),
@@ -171,25 +153,18 @@ class HomeDashboardScreen extends ConsumerWidget {
       DashboardSection.quickMetrics: Row(
         children: [
           Expanded(
-            child: nutritionAsync.when(
-              data: (overview) => _MetricPanel(
-                label: 'Hydration',
-                value: NutritionFormatters.hydrationMilliliters(
-                  overview.totalHydrationMilliliters,
-                ),
-                accent: AppColors.electricBlue,
-                subtitle: '${overview.hydrationLogs.length} entries today',
-              ),
+            child: historyAsync.when(
+              data: (items) => _WorkoutStreakPanel(items: items),
               error: (_, __) => const _MetricPanel(
-                label: 'Hydration',
+                label: 'Streak',
                 value: '--',
-                accent: AppColors.electricBlue,
+                accent: AppColors.neonGreen,
                 subtitle: 'Unavailable',
               ),
               loading: () => const _MetricPanel(
-                label: 'Hydration',
+                label: 'Streak',
                 value: '...',
-                accent: AppColors.electricBlue,
+                accent: AppColors.neonGreen,
                 subtitle: 'Loading',
               ),
             ),
@@ -324,10 +299,13 @@ class HomeDashboardScreen extends ConsumerWidget {
           icon: const Icon(Icons.dashboard_customize_outlined),
         ),
       ],
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _openQuickAdd(context, ref),
-        icon: const Icon(Icons.add),
-        label: const Text('Quick Add'),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 92),
+        child: FloatingActionButton.small(
+          tooltip: 'Quick add',
+          onPressed: () => _openQuickAdd(context, ref),
+          child: const Icon(Icons.add),
+        ),
       ),
       child: ListView(
         children: _orderedSectionChildren(
@@ -597,6 +575,462 @@ class _QuickAddAction extends StatelessWidget {
         title: Text(label),
         onTap: onTap,
       ),
+    );
+  }
+}
+
+class _HydrationFillBar extends StatefulWidget {
+  const _HydrationFillBar({required this.progress, required this.accent});
+
+  final double progress;
+  final Color accent;
+
+  @override
+  State<_HydrationFillBar> createState() => _HydrationFillBarState();
+}
+
+class _HydrationFillBarState extends State<_HydrationFillBar>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulseController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 520),
+    )..forward();
+  }
+
+  @override
+  void didUpdateWidget(covariant _HydrationFillBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.progress != widget.progress ||
+        oldWidget.accent != widget.accent) {
+      _pulseController
+        ..reset()
+        ..forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    final trackColor = brightness == Brightness.dark
+        ? Colors.white.withValues(alpha: 0.08)
+        : Colors.white.withValues(alpha: 0.56);
+    final borderColor = brightness == Brightness.dark
+        ? Colors.white.withValues(alpha: 0.20)
+        : AppColors.lightForeground.withValues(alpha: 0.18);
+    final progress = widget.progress.clamp(0.0, 1.0);
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(end: progress),
+      duration: const Duration(milliseconds: 720),
+      curve: Curves.easeOutCubic,
+      builder: (context, animatedProgress, child) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            return Container(
+              height: 32,
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: trackColor,
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: borderColor, width: 1.4),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(999),
+                child: Stack(
+                  children: [
+                    FractionallySizedBox(
+                      alignment: Alignment.centerLeft,
+                      widthFactor: animatedProgress,
+                      child: AnimatedBuilder(
+                        animation: _pulseController,
+                        builder: (context, child) {
+                          final pulse = math.sin(
+                            _pulseController.value * math.pi,
+                          );
+                          return DecoratedBox(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(999),
+                              gradient: LinearGradient(
+                                colors: [
+                                  widget.accent.withValues(alpha: 0.92),
+                                  Color.lerp(
+                                    widget.accent,
+                                    Colors.cyanAccent,
+                                    0.18,
+                                  )!.withValues(alpha: 0.96),
+                                ],
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: widget.accent.withValues(
+                                    alpha: 0.18 + (pulse * 0.16),
+                                  ),
+                                  blurRadius: 10 + (pulse * 8),
+                                ),
+                              ],
+                            ),
+                            child: const SizedBox.expand(),
+                          );
+                        },
+                      ),
+                    ),
+                    Positioned(
+                      right: 7,
+                      top: 6,
+                      bottom: 6,
+                      child: Container(
+                        width: 3,
+                        decoration: BoxDecoration(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.22),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                      ),
+                    ),
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.white.withValues(alpha: 0.20),
+                                Colors.transparent,
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _HydrationStatusPanel extends ConsumerWidget {
+  const _HydrationStatusPanel({
+    required this.overview,
+    required this.goalMilliliters,
+  });
+
+  static const _softLimitMultiplier = 1.4;
+  static const _hardLimitMultiplier = 1.8;
+
+  final NutritionDayOverview overview;
+  final double goalMilliliters;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final logged = overview.totalHydrationMilliliters;
+    final progress = (logged / goalMilliliters).clamp(0, 1).toDouble();
+    final remaining = (goalMilliliters - logged).clamp(0, goalMilliliters);
+    final softLimit = goalMilliliters * _softLimitMultiplier;
+    final hardLimit = goalMilliliters * _hardLimitMultiplier;
+    final isNearLimit = logged >= softLimit;
+    final isAtGoal = logged >= goalMilliliters;
+    final accent = isNearLimit
+        ? AppColors.crimson
+        : isAtGoal
+        ? AppColors.neonGreen
+        : AppColors.electricBlue;
+    final message = isNearLimit
+        ? 'High intake for today. Pause and consider electrolytes, meal timing, and thirst cues.'
+        : isAtGoal
+        ? 'Hydration goal filled. Keep sipping only if thirst or training demands it.'
+        : '${NutritionFormatters.hydrationMilliliters(remaining.toDouble())} left to fill today.';
+
+    return AppPanel(
+      gradient: AppColors.greenPanelGradient,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(Icons.water_drop_outlined, color: accent),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Hydration Tank',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.labelLarge?.copyWith(color: accent),
+                    ),
+                    Text(
+                      '${NutritionFormatters.hydrationMilliliters(logged)} / ${NutritionFormatters.hydrationMilliliters(goalMilliliters)}',
+                      style: Theme.of(context).textTheme.headlineLarge,
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                tooltip: 'Edit water goal',
+                onPressed: () => _editHydrationGoal(context, ref),
+                icon: const Icon(Icons.tune_outlined),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          _HydrationFillBar(progress: progress, accent: accent),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  message,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+              Text(
+                '${(progress * 100).round()}%',
+                style: Theme.of(
+                  context,
+                ).textTheme.labelLarge?.copyWith(color: accent),
+              ),
+            ],
+          ),
+          if (isNearLimit) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Safety guard: Forge warns above ${NutritionFormatters.hydrationMilliliters(softLimit)} and blocks quick-add above ${NutritionFormatters.hydrationMilliliters(hardLimit)}.',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: AppColors.crimson),
+            ),
+          ],
+          const SizedBox(height: AppSpacing.md),
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.sm,
+            children: [
+              FilledButton.icon(
+                onPressed: logged + 250 > hardLimit
+                    ? null
+                    : () => _addWater(context, ref, 250, softLimit),
+                icon: const Icon(Icons.add),
+                label: const Text('Add 250 ml'),
+              ),
+              FilledButton.tonalIcon(
+                onPressed: logged + 500 > hardLimit
+                    ? null
+                    : () => _addWater(context, ref, 500, softLimit),
+                icon: const Icon(Icons.add_circle_outline),
+                label: const Text('Add 500 ml'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _addWater(
+    BuildContext context,
+    WidgetRef ref,
+    double amount,
+    double softLimit,
+  ) async {
+    await ref
+        .read(nutritionActionsProvider)
+        .addHydration(amount: amount, unit: VolumeUnit.milliliters);
+    if (!context.mounted) {
+      return;
+    }
+    final projectedTotal = overview.totalHydrationMilliliters + amount;
+    final message = projectedTotal >= softLimit
+        ? 'Water logged. You are near today\'s upper warning zone, so slow down unless training demands it.'
+        : 'Water logged.';
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _editHydrationGoal(BuildContext context, WidgetRef ref) async {
+    final controller = TextEditingController(
+      text: goalMilliliters.round().toString(),
+    );
+    final result = await showDialog<double>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Edit Water Goal'),
+          content: TextField(
+            controller: controller,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(
+              labelText: 'Daily goal in ml',
+              helperText: 'Example: 2500. Forge warns if you go far above it.',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                final value = double.tryParse(controller.text.trim());
+                Navigator.of(dialogContext).pop(value);
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+    controller.dispose();
+    if (result == null || result < 1000 || result > 6000) {
+      if (result != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Choose a goal between 1000 and 6000 ml.'),
+          ),
+        );
+      }
+      return;
+    }
+    await ref.read(hydrationGoalControllerProvider).setGoalMilliliters(result);
+  }
+}
+
+class _WorkoutStreakPanel extends StatelessWidget {
+  const _WorkoutStreakPanel({required this.items});
+
+  final List<WorkoutHistoryItem> items;
+
+  @override
+  Widget build(BuildContext context) {
+    final status = _WorkoutStreakStatus.fromHistory(items);
+    final accent = status.isAlive ? AppColors.neonGreen : AppColors.vividOrange;
+
+    return AppPanel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Training Streak',
+            style: Theme.of(context).textTheme.labelMedium,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                status.count.toString(),
+                style: Theme.of(
+                  context,
+                ).textTheme.displaySmall?.copyWith(color: accent),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                child: Text(
+                  'day run',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(status.message, style: Theme.of(context).textTheme.bodySmall),
+          const SizedBox(height: AppSpacing.sm),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              value: status.progress,
+              minHeight: 7,
+              backgroundColor: AppColors.progressTrackFor(
+                Theme.of(context).brightness,
+              ),
+              valueColor: AlwaysStoppedAnimation<Color>(accent),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WorkoutStreakStatus {
+  const _WorkoutStreakStatus({
+    required this.count,
+    required this.progress,
+    required this.isAlive,
+    required this.message,
+  });
+
+  final int count;
+  final double progress;
+  final bool isAlive;
+  final String message;
+
+  factory _WorkoutStreakStatus.fromHistory(List<WorkoutHistoryItem> items) {
+    if (items.isEmpty) {
+      return const _WorkoutStreakStatus(
+        count: 0,
+        progress: 0.05,
+        isAlive: false,
+        message: 'Start one session to light the streak.',
+      );
+    }
+
+    final workoutDays = items.map((item) {
+      final local = item.startedAt.toLocal();
+      return DateTime(local.year, local.month, local.day);
+    }).toSet();
+    final todayRaw = DateTime.now();
+    final today = DateTime(todayRaw.year, todayRaw.month, todayRaw.day);
+    final latestDay = workoutDays.reduce((a, b) => a.isAfter(b) ? a : b);
+    final daysSinceLatest = today.difference(latestDay).inDays;
+    var cursor = daysSinceLatest == 0
+        ? today
+        : today.subtract(Duration(days: daysSinceLatest));
+    var count = 0;
+    while (workoutDays.contains(cursor)) {
+      count++;
+      cursor = cursor.subtract(const Duration(days: 1));
+    }
+    final isAlive = daysSinceLatest <= 1;
+    final message = isAlive
+        ? daysSinceLatest == 0
+              ? 'Alive today. Nice rhythm.'
+              : 'Still alive. Train today to extend it.'
+        : 'Lost $daysSinceLatest day${daysSinceLatest == 1 ? '' : 's'} ago. Restart with one session.';
+
+    return _WorkoutStreakStatus(
+      count: count,
+      progress: (count / 7).clamp(0.05, 1).toDouble(),
+      isAlive: isAlive,
+      message: message,
     );
   }
 }

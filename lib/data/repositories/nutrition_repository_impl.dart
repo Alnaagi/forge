@@ -217,6 +217,25 @@ class NutritionRepositoryImpl implements NutritionRepository {
   }
 
   @override
+  Future<List<MealEntryDetail>> getRecentMealEntryDetails({
+    int limit = 6,
+  }) async {
+    final rows = await _dao.getRecentMealEntryDetails(limit: limit);
+    return rows
+        .map(
+          (row) => MealEntryDetail(
+            entry: row.entry.toDomain(),
+            food: row.food.toDomain(),
+            macros: _macroCalculatorService.calculateForQuantity(
+              food: row.food.toDomain(),
+              quantity: row.entry.toDomain().quantity,
+            ),
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  @override
   Future<void> saveHydrationLog(HydrationLog hydrationLog) {
     return _dao.upsertHydrationLog(hydrationLog.toCompanion());
   }

@@ -16,6 +16,7 @@ abstract class NutritionRepository {
   Future<void> saveMealEntry(MealEntry mealEntry);
   Future<void> deleteMealEntry(String mealEntryId);
   Future<List<MealEntryDetail>> getMealEntryDetailsForDay(DateTime day);
+  Future<List<MealEntryDetail>> getRecentMealEntryDetails({int limit = 6});
   Future<void> saveHydrationLog(HydrationLog hydrationLog);
   Future<void> deleteHydrationLog(String hydrationLogId);
   Future<List<HydrationLog>> getHydrationLogsForDay(DateTime day);

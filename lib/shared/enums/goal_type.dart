@@ -1,1 +1,10 @@
-enum GoalType { cut, bulk, recomp, strength, maintain, custom }
+enum GoalType {
+  cut,
+  bulk,
+  recomp,
+  hypertrophy,
+  strength,
+  endurance,
+  maintain,
+  custom,
+}

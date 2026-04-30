@@ -177,6 +177,29 @@ class NutritionDao {
         .get();
   }
 
+  Future<List<MealEntryDetailRow>> getRecentMealEntryDetails({int limit = 6}) {
+    final statement =
+        database.select(database.mealEntriesTable).join([
+            innerJoin(
+              database.foodsTable,
+              database.foodsTable.id.equalsExp(
+                database.mealEntriesTable.foodId,
+              ),
+            ),
+          ])
+          ..orderBy([OrderingTerm.desc(database.mealEntriesTable.loggedAt)])
+          ..limit(limit);
+
+    return statement
+        .map(
+          (row) => MealEntryDetailRow(
+            entry: row.readTable(database.mealEntriesTable),
+            food: row.readTable(database.foodsTable),
+          ),
+        )
+        .get();
+  }
+
   Future<MealEntryDetailRow?> getMealEntryDetailById(String mealEntryId) {
     final statement = database.select(database.mealEntriesTable).join([
       innerJoin(
